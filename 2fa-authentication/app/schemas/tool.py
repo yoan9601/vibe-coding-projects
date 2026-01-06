@@ -29,9 +29,16 @@ class ToolResponse(BaseModel):
     status: ToolStatus
     url: Optional[str]
     created_by: int
+    created_by_id: int  # Alias for created_by
+    created_by_username: Optional[str] = None  # Creator username
     approved_by: Optional[int]
+    rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    # Rating information
+    average_rating: float = 0.0
+    total_ratings: int = 0
+    rating_distribution: Optional[dict] = None
     
     class Config:
         from_attributes = True
@@ -48,3 +55,10 @@ class ToolApproval(BaseModel):
     """Schema for approving/rejecting a tool"""
     approved: bool
     reason: Optional[str] = None
+
+
+class ToolsListResponse(BaseModel):
+    """Schema for paginated tools list"""
+    tools: list
+    total: int
+

@@ -32,12 +32,12 @@ class RatingStats(BaseModel):
 # Comment schemas
 class CommentCreate(BaseModel):
     """Schema for creating a comment"""
-    comment: str = Field(..., min_length=10, max_length=2000)
+    content: str = Field(..., min_length=10, max_length=2000)
 
 
 class CommentUpdate(BaseModel):
     """Schema for updating a comment"""
-    comment: str = Field(..., min_length=10, max_length=2000)
+    content: str = Field(..., min_length=10, max_length=2000)
 
 
 class CommentResponse(BaseModel):
@@ -45,13 +45,13 @@ class CommentResponse(BaseModel):
     id: int
     tool_id: int
     user_id: int
-    comment: str
+    content: str
+    username: str
     upvotes: int
     downvotes: int
+    user_vote: Optional[str] = None  # "up" or "down" or null
     created_at: datetime
-    updated_at: datetime
-    # Include username for display
-    username: Optional[str] = None
+    updated_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
@@ -59,7 +59,13 @@ class CommentResponse(BaseModel):
 
 class CommentVoteCreate(BaseModel):
     """Schema for voting on a comment"""
-    vote_type: str = Field(..., pattern="^(upvote|downvote)$")
+    vote: str = Field(..., pattern="^(up|down)$")
+
+
+class CommentsListResponse(BaseModel):
+    """Schema for paginated comments list"""
+    comments: list
+    total: int
 
 
 class CommentVoteResponse(BaseModel):

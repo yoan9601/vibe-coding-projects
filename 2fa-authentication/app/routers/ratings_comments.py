@@ -78,6 +78,25 @@ async def rate_tool(
     return rating
 
 
+@router.get("/{tool_id}/my-rating")
+async def get_my_rating(
+    tool_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's rating for a tool"""
+    
+    rating = db.query(ToolRating).filter(
+        ToolRating.tool_id == tool_id,
+        ToolRating.user_id == user.id
+    ).first()
+    
+    if rating:
+        return {"rating": rating.rating}
+    else:
+        return {"rating": None}
+
+
 @router.get("/{tool_id}/ratings/stats", response_model=RatingStats)
 async def get_rating_stats(tool_id: int, db: Session = Depends(get_db)):
     """Get rating statistics for a tool"""

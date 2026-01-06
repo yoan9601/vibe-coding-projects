@@ -221,7 +221,7 @@ async def delete_tool(
     return None
 
 
-@router.get("/my/tools", response_model=List[ToolResponse])
+@router.get("/my", response_model=List[ToolResponse])
 async def get_my_tools(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
