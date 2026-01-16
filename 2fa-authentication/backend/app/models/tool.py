@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Enum as SQLEnum, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
+
 from app.database import Base
 
 
@@ -16,31 +17,41 @@ class ToolCategory(str, enum.Enum):
 
 
 class ToolStatus(str, enum.Enum):
-    """Tool approval status"""
+    """Tool approval status enumeration"""
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
 
 class Tool(Base):
-    """Tool model for managing developer tools"""
+    """Tool model for storing tool information"""
     __tablename__ = "tools"
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False, index=True)
     description = Column(Text, nullable=False)
-    category = Column(SQLEnum(ToolCategory), default=ToolCategory.OTHER, nullable=False, index=True)
-    status = Column(SQLEnum(ToolStatus), default=ToolStatus.PENDING, nullable=False, index=True)
-    url = Column(String(255), nullable=True)
+    
+    category = Column(
+        SQLEnum(ToolCategory, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        index=True
+    )
+    
+    status = Column(
+        SQLEnum(ToolStatus, values_callable=lambda x: [e.value for e in x]),
+        default=ToolStatus.PENDING,
+        nullable=False,
+        index=True
+    )
+    
+    url = Column(String(500), nullable=True)
     
     # Foreign keys
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    
-    # Rejection reason (when status = REJECTED)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     rejection_reason = Column(Text, nullable=True)
     
-    # Metadata
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -51,4 +62,4 @@ class Tool(Base):
     comments = relationship("ToolComment", back_populates="tool", cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f"<Tool(name='{self.name}', status='{self.status}', category='{self.category}')>"
+        return f"<Tool(name='{self.name}', category='{self.category}', status='{self.status}')>"

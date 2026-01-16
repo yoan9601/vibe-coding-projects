@@ -75,7 +75,7 @@ export function ToolCard({ tool, showActions, onEdit, onDelete }: ToolCardProps)
             ))}
           </div>
           <span className="text-sm text-muted-foreground">
-            {tool.average_rating.toFixed(1)} ({tool.total_ratings})
+           {tool.average_rating?.toFixed(1) || '0.0'} ({tool.total_ratings || 0})
           </span>
         </div>
       </CardContent>

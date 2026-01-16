@@ -91,11 +91,19 @@ export default function ToolDetails() {
   };
 
   const handleAddComment = async () => {
+  if (!newComment.trim() || newComment.trim().length < 10) {
+    toast({
+      title: 'Error',
+      description: 'Comment must be at least 10 characters long',
+      variant: 'destructive',
+    });
+    return;
+  }
     if (!id || !newComment.trim() || isCommenting) return;
     setIsCommenting(true);
     try {
       const comment = await api.addComment(parseInt(id), newComment);
-      setComments((prev) => [comment, ...prev]);
+      setComments((prev) => [comment, ...(prev || [])]);
       setTotalComments((prev) => prev + 1);
       setNewComment('');
       toast({ title: 'Comment added' });
@@ -169,7 +177,7 @@ export default function ToolDetails() {
     try {
       const nextPage = commentsPage + 1;
       const data = await api.getComments(parseInt(id), nextPage * 10, 10);
-      setComments((prev) => [...prev, ...data.comments]);
+      setComments((prev) => [...(prev || []), ...data.comments]);
       setCommentsPage(nextPage);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load more comments', variant: 'destructive' });
@@ -298,7 +306,7 @@ export default function ToolDetails() {
                 <Separator />
 
                 {/* Comments List */}
-                {comments.length === 0 ? (
+                {(!comments || comments.length === 0) ? (
                   <p className="text-center text-muted-foreground py-8">
                     No comments yet. Be the first to share your thoughts!
                   </p>
@@ -398,7 +406,7 @@ export default function ToolDetails() {
                       </div>
                     ))}
 
-                    {comments.length < totalComments && (
+                    {comments && comments.length < totalComments && (
                       <Button
                         variant="outline"
                         className="w-full"
@@ -425,7 +433,7 @@ export default function ToolDetails() {
               <CardContent className="space-y-6">
                 {/* Average Rating */}
                 <div className="text-center">
-                  <div className="text-5xl font-bold mb-2">{tool.average_rating.toFixed(1)}</div>
+                  <div className="text-5xl font-bold mb-2">{tool.average_rating?.toFixed(1) || '0.0'}</div>
                   <StarRating rating={tool.average_rating} size="lg" />
                   <p className="text-sm text-muted-foreground mt-2">
                     Based on {tool.total_ratings} {tool.total_ratings === 1 ? 'rating' : 'ratings'}

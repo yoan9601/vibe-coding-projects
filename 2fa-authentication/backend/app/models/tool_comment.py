@@ -11,7 +11,7 @@ class ToolComment(Base):
     id = Column(Integer, primary_key=True, index=True)
     tool_id = Column(Integer, ForeignKey("tools.id"), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    comment = Column(Text, nullable=False)
+    content = Column(Text, nullable=False)
     upvotes = Column(Integer, default=0)
     downvotes = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)

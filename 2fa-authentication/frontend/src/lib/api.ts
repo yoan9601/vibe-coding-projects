@@ -40,10 +40,13 @@ class ApiService {
 
     if (!response.ok) {
       if (response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-        throw new Error('Session expired. Please login again.');
-      }
+  // Don't redirect if already on login page
+  if (!endpoint.includes('/auth/login')) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  }
+  throw new Error('Invalid username or password');
+}
       if (response.status === 403) {
         throw new Error('Access denied. You do not have permission to perform this action.');
       }
@@ -51,9 +54,13 @@ class ApiService {
       throw new Error(error.detail || 'An error occurred');
     }
 
+    if (response.status === 204) {
+      return {} as T;
+    }
     return response.json();
   }
 
+  // Auth endpoints
   // Auth endpoints
   async login(username: string, password: string) {
     return this.request<{ access_token: string; token_type: string; requires_2fa: boolean }>('/auth/login', {
@@ -206,13 +213,14 @@ class ApiService {
   async approveTool(id: number) {
     return this.request<Tool>(`/admin/tools/${id}/approve`, {
       method: 'POST',
+      body: JSON.stringify({ approved: true }),
     });
   }
 
   async rejectTool(id: number, reason: string) {
-    return this.request<Tool>(`/admin/tools/${id}/reject`, {
+    return this.request<Tool>(`/admin/tools/${id}/approve`, {
       method: 'POST',
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ approved: false, reason }),
     });
   }
 

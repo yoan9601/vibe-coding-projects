@@ -68,7 +68,11 @@ export function ToolModal({ open, onClose, onSubmit, tool, isLoading }: ToolModa
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    } else if (formData.description.trim().length < 10) {
+      newErrors.description = 'Description must be at least 10 characters';
+    }
     if (!formData.url.trim()) newErrors.url = 'URL is required';
     else if (!/^https?:\/\/.+/.test(formData.url)) newErrors.url = 'Please enter a valid URL';
     setErrors(newErrors);

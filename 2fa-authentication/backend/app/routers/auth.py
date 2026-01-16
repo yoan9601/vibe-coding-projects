@@ -216,3 +216,32 @@ async def disable_2fa(
 async def get_current_user_info(user: User = Depends(get_current_user)):
     """Get current user information"""
     return user
+
+@router.post("/change-password")
+async def change_password(
+    password_data: dict,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password"""
+    current_password = password_data.get("current_password")
+    new_password = password_data.get("new_password")
+    
+    if not current_password or not new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password and new password are required"
+        )
+    
+    # Verify current password
+    if not verify_password(current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Update password
+    user.hashed_password = hash_password(new_password)
+    db.commit()
+    
+    return {"message": "Password changed successfully"}

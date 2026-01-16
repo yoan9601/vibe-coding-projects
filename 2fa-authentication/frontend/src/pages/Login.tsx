@@ -46,11 +46,11 @@ export default function Login() {
         navigate('/dashboard');
       }
     } catch (error) {
-      toast({
-        title: 'Login Failed',
-        description: error instanceof Error ? error.message : 'Invalid credentials',
-        variant: 'destructive',
-      });
+  toast({
+    title: 'Login Failed',
+    description: 'Invalid username or password',
+    variant: 'destructive',
+  });
     } finally {
       setIsLoading(false);
     }

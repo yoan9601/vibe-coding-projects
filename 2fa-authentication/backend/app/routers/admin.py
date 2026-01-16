@@ -253,5 +253,34 @@ async def get_admin_stats(
     
     # Cache for 5 minutes
     cache_service.set(cache_key, stats, expire=300)
+
+    return stats
+
+
+@router.get("/statistics")
+async def get_statistics(
+    user: User = Depends(require_moderator),
+    db: Session = Depends(get_db)
+):
+    """Get statistics for admin panel"""
+    stats = {
+        "users_by_role": [
+            {"role": "user", "count": db.query(User).filter(User.role == UserRole.USER).count()},
+            {"role": "moderator", "count": db.query(User).filter(User.role == UserRole.MODERATOR).count()},
+            {"role": "admin", "count": db.query(User).filter(User.role == UserRole.ADMIN).count()},
+        ],
+        "tools_by_status": [
+            {"status": "pending", "count": db.query(Tool).filter(Tool.status == ToolStatus.PENDING).count()},
+            {"status": "approved", "count": db.query(Tool).filter(Tool.status == ToolStatus.APPROVED).count()},
+            {"status": "rejected", "count": db.query(Tool).filter(Tool.status == ToolStatus.REJECTED).count()},
+        ],
+        "tools_by_category": [],
+        "recent_activity": []
+    }
+    
+    for category in ToolCategory:
+        count = db.query(Tool).filter(Tool.category == category).count()
+        stats["tools_by_category"].append({"category": category.value, "count": count})
+    
     
     return stats

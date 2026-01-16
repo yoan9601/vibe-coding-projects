@@ -211,7 +211,7 @@ async def create_comment(
     comment = ToolComment(
         tool_id=tool_id,
         user_id=user.id,
-        comment=comment_data.comment
+        content=comment_data.content
     )
     
     db.add(comment)
@@ -231,10 +231,21 @@ async def create_comment(
         details={"tool_id": tool_id}
     )
     
-    return comment
+    return {
+        "id": comment.id,
+        "tool_id": comment.tool_id,
+        "user_id": comment.user_id,
+        "content": comment.content,
+        "username": user.username,
+        "upvotes": comment.upvotes,
+        "downvotes": comment.downvotes,
+        "user_vote": None,
+        "created_at": comment.created_at,
+        "updated_at": comment.updated_at
+    }
 
 
-@router.get("/{tool_id}/comments", response_model=List[CommentResponse])
+@router.get("/{tool_id}/comments")
 async def get_tool_comments(
     tool_id: int,
     skip: int = 0,
@@ -243,11 +254,7 @@ async def get_tool_comments(
 ):
     """Get all comments for a tool"""
     
-    # Try cache
-    cache_key = f"comments:{tool_id}:{skip}:{limit}"
-    cached = cache_service.get(cache_key)
-    if cached:
-        return cached
+    
     
     comments = db.query(ToolComment)\
         .filter(ToolComment.tool_id == tool_id)\
@@ -259,14 +266,25 @@ async def get_tool_comments(
     # Add username to each comment
     result = []
     for comment in comments:
-        comment_dict = CommentResponse.from_orm(comment).dict()
+        comment_dict = {
+    "id": comment.id,
+    "tool_id": comment.tool_id,
+    "user_id": comment.user_id,
+    "content": comment.content,
+    "username": comment.user.username if comment.user else "Unknown",
+    "upvotes": comment.upvotes,
+    "downvotes": comment.downvotes,
+    "user_vote": None,
+    "created_at": comment.created_at,
+    "updated_at": comment.updated_at
+}
         comment_dict['username'] = comment.user.username
         result.append(comment_dict)
     
-    # Cache for 5 minutes
-    cache_service.set(cache_key, result, expire=300)
+   
     
-    return result
+    total = db.query(ToolComment).filter(ToolComment.tool_id == tool_id).count()
+    return {"comments": result, "total": total}
 
 
 @router.put("/{tool_id}/comments/{comment_id}", response_model=CommentResponse)
